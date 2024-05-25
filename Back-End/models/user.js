@@ -13,7 +13,6 @@ const UserSchema = new mongoose.Schema(
     displayName: 
     {
         type: String,
-        required: true
     },
     // First name field of a User
     firstName: 
@@ -27,7 +26,7 @@ const UserSchema = new mongoose.Schema(
         type: String,
         required: true
     },
-    // Image field of a user (Profile pic)
+    // Image field of a user (Profile pic)    
     image: 
     {
         type: String

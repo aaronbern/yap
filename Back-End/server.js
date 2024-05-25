@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const path = require('path');
 require('dotenv').config();
 require('./config/passport'); 
@@ -17,7 +18,9 @@ app.use(session(
 {
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: false, // Ensure uninitialized sessions are not saved
+    store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }), // Use MongoDB to store sessions
+    cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 day session expiration
 }));
 
 // Passport middleware
@@ -31,6 +34,7 @@ mongoose.connect(process.env.MONGODB_URI)
 
 // Routes
 app.use('/auth', require('./routes/auth'));
+app.use('/users', require('./routes/user_routes'));
 
 // Dashboard route
 // Using for now to test auth, could use for a profile page or something. Or the main menu dashboard
