@@ -1,25 +1,41 @@
 const express = require('express');
+const http = require('http');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const path = require('path');
-require('dotenv').config();
+const { Server } = require('socket.io');
+const cors = require('cors');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 require('./config/passport'); 
 
+const Message = require('./models/message');
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: 'http://localhost:3000',
+        methods: ['GET', 'POST'],
+        allowedHeaders: ['Content-Type'],
+        credentials: true
+    }
+});
 
 // Middleware
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Express session
-app.use(session(
-{
+app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: false, // Ensure uninitialized sessions are not saved
-    store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }), // Use MongoDB to store sessions
+    saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
     cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 day session expiration
 }));
 
@@ -35,29 +51,57 @@ mongoose.connect(process.env.MONGODB_URI)
 // Routes
 app.use('/auth', require('./routes/auth'));
 app.use('/users', require('./routes/user_routes'));
+app.use('/chat', require('./routes/chat_routes')); 
 
 // Dashboard route
-// Using for now to test auth, could use for a profile page or something. Or the main menu dashboard
-app.get('/dashboard', (req, res) =>
-{
-    if (req.isAuthenticated())
-    {
-        res.send(`Hello, ${req.user.displayName}`);
-    }
-    else
-    {
+app.get('/dashboard', (req, res) => {
+    if (req.isAuthenticated()) {
+        res.redirect('http://localhost:3000'); 
+    } else {
         res.redirect('/');
     }
 });
 
 // Home route
-app.get('/', (req, res) =>
-{
+app.get('/', (req, res) => {
     res.send('Yap Chat Application');
 });
 
+// Serve static assets if in production
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static('yap-chat-frontend/build'));
+    app.get('*', (req, res) => {
+        res.sendFile(path.resolve(__dirname, 'yap-chat-frontend', 'build', 'index.html'));
+    });
+}
+
+// Socket.IO event handling
+io.on('connection', (socket) => {
+    console.log('New user connected');
+
+    socket.on('joinRoom', ({ chatRoomId }) => {
+        socket.join(chatRoomId);
+        console.log(`User joined room: ${chatRoomId}`);
+    });
+
+    socket.on('chatMessage', async ({ chatRoomId, text, senderId }) => {
+        const message = new Message({
+            chatRoom: chatRoomId,
+            sender: senderId,
+            text
+        });
+
+        await message.save();
+
+        io.to(chatRoomId).emit('message', message);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected');
+    });
+});
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-{
+server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

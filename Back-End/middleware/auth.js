@@ -1,3 +1,4 @@
+// middleware/auth.js
 function ensureAuth(req, res, next) 
 {
     if (req.isAuthenticated()) 

@@ -1,3 +1,4 @@
+// models/chat_room.js
 const mongoose = require('mongoose');
 
 // Chat Room Schema -- WIP

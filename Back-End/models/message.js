@@ -1,3 +1,4 @@
+// models/message.js
 const mongoose = require('mongoose');
 
 // Initial message schema -- UPDATE IF NEEDED

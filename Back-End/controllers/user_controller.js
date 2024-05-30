@@ -1,3 +1,4 @@
+// controllers/user_controller.js
 const User = require('../models/user');
 
 // Called from routes/user_routes.js

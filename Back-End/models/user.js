@@ -1,3 +1,4 @@
+// models/user.js
 const mongoose = require('mongoose');
 
 // User Schema -- CAN BE UPDATED AS NEEDED
