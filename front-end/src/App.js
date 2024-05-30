@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { FaPlus } from 'react-icons/fa';
 import './App.css'; // Ensure this import is present to apply CSS
 
 function App({ socket }) {
@@ -12,6 +13,7 @@ function App({ socket }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [participants, setParticipants] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         axios.get('/auth/user')
@@ -73,6 +75,7 @@ function App({ socket }) {
                 setChatRooms([...chatRooms, response.data]);
                 setNewChatRoomName('');
                 setParticipants([]);
+                setIsModalOpen(false);
             })
             .catch(error => console.error('Error creating chat room:', error));
     };
@@ -84,7 +87,19 @@ function App({ socket }) {
     };
 
     const handleAddParticipant = (userId) => {
-        setParticipants([...participants, userId]);
+        if (!participants.includes(userId)) {
+            setParticipants([...participants, userId]);
+        }
+    };
+
+    const openModal = () => {
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setNewChatRoomName('');
+        setParticipants([]);
     };
 
     return (
@@ -105,18 +120,12 @@ function App({ socket }) {
                             {chatRooms.map(room => (
                                 <li key={room._id} onClick={() => fetchMessages(room._id)} className={selectedChatRoom === room._id ? 'active' : ''}>{room.name}</li>
                             ))}
+                            <li>
+                                <button onClick={openModal} className="plus-icon">
+                                    <FaPlus />
+                                </button>
+                            </li>
                         </ul>
-
-                        <div className="create-chat-room">
-                            <h3>Create New Chat Room</h3>
-                            <input
-                                type="text"
-                                value={newChatRoomName}
-                                onChange={(e) => setNewChatRoomName(e.target.value)}
-                                placeholder="Chat room name"
-                            />
-                            <button onClick={handleCreateChatRoom}>Create</button>
-                        </div>
 
                         <div className="search-users">
                             <h3>Search Users to Add</h3>
@@ -161,6 +170,40 @@ function App({ socket }) {
                             <button onClick={handleSendMessage}>Send</button>
                         </div>
                     </div>
+
+                    {isModalOpen && (
+                        <div className="modal-overlay">
+                            <div className="modal">
+                                <h2>Create New Chat Room</h2>
+                                <input
+                                    type="text"
+                                    value={newChatRoomName}
+                                    onChange={(e) => setNewChatRoomName(e.target.value)}
+                                    placeholder="Chat room name"
+                                />
+                                <div className="search-users-modal">
+                                    <h3>Search Users to Add</h3>
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        placeholder="Search users"
+                                    />
+                                    <button onClick={handleSearchUsers}>Search</button>
+                                    <ul className="search-results">
+                                        {searchResults.map(user => (
+                                            <li key={user._id}>
+                                                {user.displayName}
+                                                <button onClick={() => handleAddParticipant(user._id)}>Add</button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                                <button onClick={handleCreateChatRoom} className="create-button">Create</button>
+                                <button onClick={closeModal} className="close-button">Close</button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

@@ -88,3 +88,24 @@ exports.sendMessage = async (req, res) =>
         res.status(500).json({ message: err.message });
     }
 };
+
+// Deletes a chat room
+exports.deleteChatRoom = async (req, res) => {
+    try {
+        const chatRoom = await ChatRoom.findById(req.params.id);
+        if (!chatRoom) {
+            return res.status(404).json({ message: 'Chat room not found' });
+        }
+
+        // Delete all messages in the chat room
+        await Message.deleteMany({ chatRoom: req.params.id });
+
+        // Delete the chat room
+        await chatRoom.remove();
+
+        res.status(200).json({ message: 'Chat room deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting chat room:', err);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};

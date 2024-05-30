@@ -1,10 +1,17 @@
+/* App.css */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+}
+
 .App {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
   background: #f0f2f5;
-  font-family: Arial, sans-serif;
 }
 
 .login-container {
@@ -71,6 +78,9 @@
 
 .chat-room-list li {
   padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
@@ -86,6 +96,36 @@
 .create-chat-room,
 .search-users {
   margin-top: 20px;
+}
+
+.plus-icon {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.delete-button {
+  background-color: transparent;
+  border: none;
+  color: #ff4b5c;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.delete-button:hover {
+  color: #e03a47;
+}
+
+.chat-room-input {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-top: 10px;
 }
 
 .chat-window {
@@ -153,5 +193,41 @@
 }
 
 .message-input button:hover {
+  background-color: #0056b3;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background: white;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.create-button,
+.close-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.create-button:hover,
+.close-button:hover {
   background-color: #0056b3;
 }

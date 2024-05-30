@@ -36,33 +36,30 @@ exports.getUserById = async (req, res) =>
 };
 
 // Search user by fname, lname, or display name function
-exports.searchUsers = async (req, res) =>
+exports.searchUsers = async (req, res) => 
 {
-    const {query } = req.query; //get search query as parameter
-    try
+    const { query } = req.query; // get search query as parameter
+    console.log('Search query:', query); // Log the search query
+
+    try 
     {
-        const users = await User.find(
-        {
-            $or: 
-            [
-                {
-                    firstName:  {$regex: query, $options: 'i'}
-                },
-                {
-                    lastName:   {$regex: query, $options: 'i'}
-                },
-                {
-                    displayName: {$regex: query, $options: 'i'}
-                }
+        const users = await User.find({
+            $or: [
+                { firstName: { $regex: query, $options: 'i' } },
+                { lastName: { $regex: query, $options: 'i' } },
+                { displayName: { $regex: query, $options: 'i' } }
             ]
         });
+        console.log('Found users:', users); // Log the found users
         res.status(200).json(users);
-    }
-    catch(err)
+    } 
+    catch (err) 
     {
-        res.status(500).json({message: err.message});
+        console.error('Error searching users:', err); // Log the error
+        res.status(500).json({ message: err.message });
     }
 };
+
 
 // Update user info
 exports.updateUser = async(req, res) =>
