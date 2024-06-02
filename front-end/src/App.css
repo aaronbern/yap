@@ -1,5 +1,12 @@
+@font-face {
+  font-family: 'SOYOMapleBoldTTF';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2310@1.0/SOYOMapleBoldTTF.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+}
+
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'SOYOMapleBoldTTF', Arial, Helvetica, sans-serif;
   margin: 0;
   padding: 0;
   background-color: #f4f4f4;
@@ -10,7 +17,7 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: #f0f2f5;
+  background: #172233;
 }
 
 .login-container {
@@ -39,11 +46,12 @@ body {
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   overflow: hidden;
+  box-shadow: 0 0 25px 7px #4285F4;
 }
 
 .sidebar {
   width: 25%;
-  background: #fff;
+  background: #d0e0ff;
   padding: 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
@@ -85,11 +93,11 @@ body {
 }
 
 .chat-room-list li:hover {
-  background-color: #f0f0f0;
+  background-color: #7983972f;
 }
 
 .chat-room-list .active {
-  background-color: #d0e0ff;
+  background-color: #7983972f;
 }
 
 .create-chat-room,
@@ -131,12 +139,12 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: #d0e0ff;
 }
 
 .chat-window h2 {
   padding: 10px 20px;
-  background-color: #f0f0f0;
+  background-color: #c1d1ecbe;
   border-bottom: 1px solid #e0e0e0;
 }
 
@@ -145,9 +153,10 @@ body {
   padding: 10px 20px;
   list-style: none;
   overflow-y: auto;
-  background: #f7f9fc;
+  background: #c1d1ecbe;
   display: flex;
   flex-direction: column;
+  scrollbar-color: #3a74d8be;
 }
 
 .message-item {
@@ -163,19 +172,19 @@ body {
 
 .message-item.user-message {
   align-self: flex-end;
-  background-color: #007bff;
+  background-color: #007bffb5;
   color: white;
 }
 
 .message-item.participant-message {
   align-self: flex-start;
-  background-color: #e0f7fa;
-  color: #000;
+  background-color: #140cf357;
+  color: #ffffff;
 }
 
 .message-sender {
   font-size: 0.75em;
-  color: #888;
+  color: #ffffff;
   margin-bottom: 2px;
 }
 
@@ -203,6 +212,7 @@ body {
   border: 1px solid #ddd;
   border-radius: 5px;
   margin-right: 10px;
+  background: #c1d1ecbe;
 }
 
 .message-input button {
@@ -225,8 +235,8 @@ body {
   color: #888;
   font-style: italic;
   font-size: 0.9em;
-  height: 20px; /* Adjust the height to make space for the indicator */
-  background-color: #e0f7fa;
+  height: 20px;
+  background-color: #c1d1ecbe;
   border-radius: 10px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -240,10 +250,10 @@ body {
 
 @keyframes typingBubble {
   0% {
-    transform: translateY(0);
+      transform: translateY(0);
   }
   100% {
-    transform: translateY(-5px);
+      transform: translateY(-5px);
   }
 }
 
