@@ -82,7 +82,6 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
-
 // Socket.IO event handling
 io.on('connection', (socket) => {
     console.log('New user connected');
@@ -97,13 +96,24 @@ io.on('connection', (socket) => {
         console.log(`User left room: ${chatRoomId}`);
     });
     
-
     socket.on('chatMessage', async ({ chatRoomId, text, senderId }) => {
         try {
             console.log('Message received on server:', { chatRoomId, text, senderId });
             
             if (!chatRoomId || !senderId) {
                 console.error('chatRoomId or senderId is undefined');
+                return;
+            }
+
+            // Prevent double entry by checking message uniqueness
+            const existingMessage = await Message.findOne({
+                chatRoom: chatRoomId,
+                sender: senderId,
+                text
+            });
+
+            if (existingMessage) {
+                console.log('Duplicate message detected');
                 return;
             }
 
@@ -134,8 +144,6 @@ io.on('connection', (socket) => {
         console.log('User disconnected');
     });
 });
-
-
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
