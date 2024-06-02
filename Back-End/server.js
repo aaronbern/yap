@@ -5,14 +5,15 @@ const passport = require('passport');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const path = require('path');
-const { Server } = require('socket.io');
 const cors = require('cors');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
-require('./config/passport'); 
+require('./config/passport');
 
 const Message = require('./models/message');
+
 const app = express();
 const server = http.createServer(app);
+const { Server } = require('socket.io');
 const io = new Server(server, {
     cors: {
         origin: 'http://localhost:3000',
@@ -48,15 +49,21 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log(err));
 
+// Attach io to request
+app.use((req, res, next) => {
+    req.io = io;
+    next();
+});
+
 // Routes
 app.use('/auth', require('./routes/auth'));
 app.use('/users', require('./routes/user_routes'));
-app.use('/chat', require('./routes/chat_routes')); 
+app.use('/chat', require('./routes/chat_routes'));
 
 // Dashboard route
 app.get('/dashboard', (req, res) => {
     if (req.isAuthenticated()) {
-        res.redirect('http://localhost:3000'); 
+        res.redirect('http://localhost:3000');
     } else {
         res.redirect('/');
     }
@@ -75,6 +82,7 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
+
 // Socket.IO event handling
 io.on('connection', (socket) => {
     console.log('New user connected');
@@ -83,23 +91,51 @@ io.on('connection', (socket) => {
         socket.join(chatRoomId);
         console.log(`User joined room: ${chatRoomId}`);
     });
+    
+    socket.on('leaveRoom', ({ chatRoomId }) => {
+        socket.leave(chatRoomId);
+        console.log(`User left room: ${chatRoomId}`);
+    });
+    
 
     socket.on('chatMessage', async ({ chatRoomId, text, senderId }) => {
-        const message = new Message({
-            chatRoom: chatRoomId,
-            sender: senderId,
-            text
-        });
+        try {
+            console.log('Message received on server:', { chatRoomId, text, senderId });
+            
+            if (!chatRoomId || !senderId) {
+                console.error('chatRoomId or senderId is undefined');
+                return;
+            }
 
-        await message.save();
+            const message = new Message({
+                chatRoom: new mongoose.Types.ObjectId(chatRoomId),
+                sender: new mongoose.Types.ObjectId(senderId),
+                text
+            });
 
-        io.to(chatRoomId).emit('message', message);
+            console.log('message data before save:', message);
+
+            await message.save();
+
+            const populatedMessage = await Message.findById(message._id).populate('sender', 'displayName').exec();
+            console.log('Emitting message to room:', chatRoomId, populatedMessage);
+
+            io.to(chatRoomId).emit('message', populatedMessage); // Emit to all clients in the room
+        } catch (err) {
+            console.error('Error sending message:', err);
+        }
+    });
+
+    socket.on('typing', (data) => {
+        socket.to(data.chatRoomId).emit('typing', data);
     });
 
     socket.on('disconnect', () => {
         console.log('User disconnected');
     });
 });
+
+
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

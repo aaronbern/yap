@@ -1,3 +1,4 @@
+// Context menu to support right click options
 import React, { useEffect } from 'react';
 import './ContextMenu.css';
 

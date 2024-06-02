@@ -1,24 +1,16 @@
 // middleware/auth.js
-function ensureAuth(req, res, next) 
-{
-    if (req.isAuthenticated()) 
-    {
+const ensureAuth = (req, res, next) => {
+    if (req.isAuthenticated()) {
         return next();
-    } 
-    else 
-    {
-        res.redirect('/');
+    } else {
+        res.status(401).json({ message: 'User not authenticated' });
     }
-}
+};
 
-function ensureCorrectUser(req, res, next) 
-{
-    if (req.isAuthenticated() && req.user.id === req.params.id) 
-    {
+function ensureCorrectUser(req, res, next) {
+    if (req.isAuthenticated() && req.user.id === req.params.id) {
         return next();
-    } 
-    else 
-    {
+    } else {
         res.status(403).json({ message: 'Unauthorized' });
     }
 }
