@@ -113,7 +113,6 @@ io.on('connection', (socket) => {
             });
 
             if (existingMessage) {
-                console.log('Duplicate message detected');
                 return;
             }
 

@@ -100,7 +100,6 @@ function App() {
     };
 
     const handleSendMessage = () => {
-        event.preventDefault(); 
         if (!selectedChatRoom) {
             console.error('No chat room selected');
             return;
