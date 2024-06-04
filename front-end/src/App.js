@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client';
-import { FaPlus } from 'react-icons/fa';
+import { FaPlus, FaPaperclip } from 'react-icons/fa';
 import './App.css';
 import ContextMenu from './ContextMenu';
 import DeleteWarningModal from './DeleteWarningModal';
 import CreateChatRoomModal from './CreateChatRoomModal';
+import typingIndicatorGif from './typing-indicator.gif'; // Adjust the path as needed
 
 const socket = io('http://localhost:5000');
 
@@ -24,7 +25,11 @@ function App() {
     const [roomIdToDelete, setRoomIdToDelete] = useState(null);
     const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
     const [typingMessage, setTypingMessage] = useState('');
+    const [typingUser, setTypingUser] = useState('');
+    const [attachment, setAttachment] = useState(null);
     const messagesEndRef = useRef(null);
+    const fileInputRef = useRef(null);
+    const typingTimeoutRef = useRef(null);
 
     useEffect(() => {
         axios.get('/auth/user')
@@ -49,8 +54,13 @@ function App() {
         const handleTyping = (data) => {
             console.log('Typing event received:', data);
             if (data.chatRoomId === selectedChatRoom && data.user !== user.displayName) {
-                setTypingMessage(`${data.user} is typing...`);
-                setTimeout(() => setTypingMessage(''), 3000);
+                setTypingUser(data.user);
+                setTypingMessage('is yapping...');
+                clearTimeout(typingTimeoutRef.current);
+                typingTimeoutRef.current = setTimeout(() => {
+                    setTypingMessage('');
+                    setTypingUser('');
+                }, 1000);
             }
         };
 
@@ -100,13 +110,24 @@ function App() {
     };
 
     const handleSendMessage = () => {
-        if (!selectedChatRoom) {
-            console.error('No chat room selected');
+        if (!selectedChatRoom || !user) {
+            console.error('No chat room selected or user not defined');
             return;
         }
-
-        const message = { chatRoomId: selectedChatRoom, text: newMessage, senderId: user._id };
-
+    
+        const message = {
+            chatRoomId: selectedChatRoom,
+            text: newMessage,
+            senderId: user._id
+        };
+    
+        if (attachment) {
+            message.attachment = attachment;
+            setAttachment(null); // Reset attachment after sending
+        }
+    
+        console.log('Message to be sent:', message); // Log the message object
+    
         axios.post('/chat/messages', message)
             .then(response => {
                 setNewMessage('');
@@ -114,6 +135,7 @@ function App() {
             })
             .catch(error => console.error('Error sending message:', error));
     };
+    
 
     const handleTyping = () => {
         if (!selectedChatRoom) return;
@@ -214,6 +236,29 @@ function App() {
         }
     };
 
+    const handleAttachmentClick = () => {
+        fileInputRef.current.click();
+    };
+
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            axios.post('/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+                .then(response => {
+                    setAttachment(response.data.filePath);
+                    console.log('File uploaded successfully:', response.data.filePath);
+                })
+                .catch(error => console.error('Error uploading file:', error));
+        }
+    };
+
     const contextMenuOptions = [
         {
             label: 'Add User',
@@ -295,9 +340,17 @@ function App() {
                             <div ref={messagesEndRef} /> {/* Ref to handle scrolling */}
                         </ul>
                         <div className="typing-indicator">
-                            {typingMessage && <p>{typingMessage}</p>}
+                            {typingMessage && (
+                                <>
+                                    <img src={typingIndicatorGif} alt="Typing indicator" />
+                                    <span>{typingUser} {typingMessage}</span>
+                                </>
+                            )}
                         </div>
                         <div className="message-input">
+                            <button className="attachment-button" onClick={handleAttachmentClick}>
+                                <FaPaperclip />
+                            </button>
                             <input
                                 type="text"
                                 value={newMessage}
@@ -309,6 +362,12 @@ function App() {
                                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                             />
                             <button onClick={handleSendMessage}>Send</button>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                style={{ display: 'none' }}
+                                onChange={handleFileChange}
+                            />
                         </div>
                     </div>
 

@@ -1,4 +1,3 @@
-// models/message.js
 const mongoose = require('mongoose');
 
 // Initial message schema -- UPDATE IF NEEDED
@@ -9,7 +8,7 @@ const MessageSchema = new mongoose.Schema(
     {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'ChatRoom',
-        require: true
+        required: true
     },
     // User models are associated with a message
     sender:
@@ -22,12 +21,12 @@ const MessageSchema = new mongoose.Schema(
     text:
     {
         type: String,
-        required: true
+        required: false
     },
     // Attachment models are associated with a message
     attachments:
     {
-        type: mongoose.Schema.Types.ObjectId,
+        type: [mongoose.Schema.Types.ObjectId],
         ref: 'Attachment'
     },
     // Created at gives time stamp for a message

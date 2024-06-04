@@ -6,6 +6,8 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const path = require('path');
 const cors = require('cors');
+const multer = require('multer');
+const fs = require('fs');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 require('./config/passport');
 
@@ -30,6 +32,24 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Ensure uploads directory exists
+const uploadDir = path.resolve(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
+
+const upload = multer({ storage });
 
 // Express session
 app.use(session({
@@ -59,6 +79,9 @@ app.use((req, res, next) => {
 app.use('/auth', require('./routes/auth'));
 app.use('/users', require('./routes/user_routes'));
 app.use('/chat', require('./routes/chat_routes'));
+app.post('/upload', ensureAuth, upload.single('file'), (req, res) => {
+    res.status(200).json({ filePath: req.file.path });
+});
 
 // Dashboard route
 app.get('/dashboard', (req, res) => {
@@ -76,9 +99,9 @@ app.get('/', (req, res) => {
 
 // Serve static assets if in production
 if (process.env.NODE_ENV === 'production') {
-    app.use(express.static('yap-chat-frontend/build'));
+    app.use(express.static(path.join(__dirname, '../frontend/build')));
     app.get('*', (req, res) => {
-        res.sendFile(path.resolve(__dirname, 'yap-chat-frontend', 'build', 'index.html'));
+        res.sendFile(path.resolve(__dirname, '../frontend', 'build', 'index.html'));
     });
 }
 
@@ -96,12 +119,17 @@ io.on('connection', (socket) => {
         console.log(`User left room: ${chatRoomId}`);
     });
     
-    socket.on('chatMessage', async ({ chatRoomId, text, senderId }) => {
+    socket.on('chatMessage', async ({ chatRoomId, text, senderId, attachment }) => {
         try {
-            console.log('Message received on server:', { chatRoomId, text, senderId });
+            console.log('Message received on server:', { chatRoomId, text, senderId, attachment });
             
             if (!chatRoomId || !senderId) {
                 console.error('chatRoomId or senderId is undefined');
+                return;
+            }
+
+            if (!text && !attachment) {
+                console.error('Either text or attachment is required');
                 return;
             }
 
@@ -119,7 +147,8 @@ io.on('connection', (socket) => {
             const message = new Message({
                 chatRoom: new mongoose.Types.ObjectId(chatRoomId),
                 sender: new mongoose.Types.ObjectId(senderId),
-                text
+                text: text || '',
+                attachments: attachment ? [attachment] : []
             });
 
             console.log('message data before save:', message);
@@ -148,3 +177,10 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+function ensureAuth(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/');
+}

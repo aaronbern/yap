@@ -202,8 +202,24 @@ body {
 
 .message-input {
   display: flex;
+  align-items: center; /* Ensure vertical alignment of children */
   padding: 10px 20px;
   border-top: 1px solid #e0e0e0;
+}
+
+.attachment-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 9px;
+  cursor: pointer;
+  margin-right: 8px; /* Space between the button and input */
+  transition: background-color 0.3s ease;
+}
+
+.attachment-button:hover {
+  background-color: #0056b3;
 }
 
 .message-input input {
@@ -229,33 +245,29 @@ body {
   background-color: #0056b3;
 }
 
+
 .typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 10px 20px;
   padding: 5px 10px;
   color: #888;
   font-style: italic;
   font-size: 0.9em;
-  height: 20px;
+  height: 40px; /* Adjust as needed */
   background-color: #c1d1ecbe;
   border-radius: 10px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  animation: typingBubble 1s infinite alternate;
 }
 
-.typing-indicator p {
-  margin: 0;
+.typing-indicator img {
+  width: 30px; /* Adjust as needed */
+  height: auto;
 }
 
-@keyframes typingBubble {
-  0% {
-      transform: translateY(0);
-  }
-  100% {
-      transform: translateY(-5px);
-  }
-}
+
+
 
 .modal-overlay {
   position: fixed;

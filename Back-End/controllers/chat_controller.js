@@ -1,3 +1,4 @@
+// controllers/chat_controller.js
 const ChatRoom = require('../models/chat_room');
 const Message = require('../models/message');
 const mongoose = require('mongoose'); 
@@ -89,9 +90,9 @@ exports.addUserToChatRoom = async (req, res) => {
 // Send a message in a chat room
 exports.sendMessage = async (req, res) => {
     try {
-        const { chatRoomId, text } = req.body;
-        if (!chatRoomId || !text) {
-            return res.status(400).json({ message: 'Chat room ID and text are required' });
+        const { chatRoomId, text, attachment } = req.body;
+        if (!chatRoomId) {
+            return res.status(400).json({ message: 'Chat room ID is required' });
         }
 
         if (!req.user || !req.user._id) {
@@ -103,7 +104,8 @@ exports.sendMessage = async (req, res) => {
         const messageData = {
             chatRoom: new mongoose.Types.ObjectId(chatRoomId),
             sender: senderId,
-            text: text
+            text: text || '', // default to empty string if no text
+            attachment: attachment || '' // default to empty string if no attachment
         };
 
         const message = new Message(messageData);
