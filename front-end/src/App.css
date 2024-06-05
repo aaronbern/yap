@@ -178,7 +178,7 @@ body {
 
 .message-item.participant-message {
   align-self: flex-start;
-  background-color: #140cf357;
+  background-color: #5f77ac;
   color: #ffffff;
 }
 
@@ -303,4 +303,45 @@ body {
 .create-button:hover,
 .close-button:hover {
   background-color: #0056b3;
+}
+
+.message-attachment {
+  margin-top: 5px;
+  font-size: 0.9em;
+}
+
+.upload-progress {
+  margin-top: 10px;
+  color: #007bff;
+}
+
+.file-preview {
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: #333;
+  display: flex;
+  align-items: center;
+}
+
+.attachment-thumbnail {
+  width: 50px;
+  height: 50px;
+  margin-right: 10px;
+}
+
+.remove-attachment-button {
+  background: none;
+  border: none;
+  color: #ff4b5c;
+  cursor: pointer;
+  font-size: 1.2em;
+}
+
+.remove-attachment-button:hover {
+  color: #e03a47;
+}
+
+.attachment-preview {
+  max-width: 100px;
+  max-height: 100px;
 }

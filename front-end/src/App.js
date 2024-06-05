@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client';
-import { FaPlus, FaPaperclip } from 'react-icons/fa';
+import { FaPlus, FaPaperclip, FaTimes } from 'react-icons/fa';
 import './App.css';
 import ContextMenu from './ContextMenu';
 import DeleteWarningModal from './DeleteWarningModal';
@@ -27,6 +27,8 @@ function App() {
     const [typingMessage, setTypingMessage] = useState('');
     const [typingUser, setTypingUser] = useState('');
     const [attachment, setAttachment] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
     const typingTimeoutRef = useRef(null);
@@ -44,7 +46,7 @@ function App() {
 
     useEffect(() => {
         const handleNewMessage = (message) => {
-            console.log('New message received:', message);
+            console.log('New message received:', message); // Debug log
             if (message.chatRoom.toString() === selectedChatRoom) {
                 setMessages(prevMessages => [...prevMessages, message]);
                 scrollToBottom();
@@ -114,28 +116,29 @@ function App() {
             console.error('No chat room selected or user not defined');
             return;
         }
-    
+
+        if (!newMessage && !attachment) {
+            console.error('Either text or attachment is required');
+            return;
+        }
+
         const message = {
             chatRoomId: selectedChatRoom,
             text: newMessage,
-            senderId: user._id
+            senderId: user._id,
+            attachments: attachment ? [attachment] : []
         };
-    
-        if (attachment) {
-            message.attachment = attachment;
-            setAttachment(null); // Reset attachment after sending
-        }
-    
-        console.log('Message to be sent:', message); // Log the message object
-    
+
+        console.log('Sending message:', message); // Debug log
+
         axios.post('/chat/messages', message)
             .then(response => {
                 setNewMessage('');
-                socket.emit('chatMessage', message); // Emit the message through Socket.IO
+                setAttachment(null); // Reset attachment after sending
+                socket.emit('chatMessage', response.data); // Emit the message through Socket.IO
             })
             .catch(error => console.error('Error sending message:', error));
     };
-    
 
     const handleTyping = () => {
         if (!selectedChatRoom) return;
@@ -246,17 +249,32 @@ function App() {
             const formData = new FormData();
             formData.append('file', file);
 
+            setIsUploading(true);
+            setUploadProgress(0);
+
             axios.post('/upload', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    setUploadProgress(percentCompleted);
                 }
             })
                 .then(response => {
                     setAttachment(response.data.filePath);
                     console.log('File uploaded successfully:', response.data.filePath);
+                    setIsUploading(false);
                 })
-                .catch(error => console.error('Error uploading file:', error));
+                .catch(error => {
+                    console.error('Error uploading file:', error);
+                    setIsUploading(false);
+                });
         }
+    };
+
+    const removeAttachment = () => {
+        setAttachment(null);
     };
 
     const contextMenuOptions = [
@@ -334,6 +352,11 @@ function App() {
                                     <li key={msg._id} className={messageClass}>
                                         {showSender && <div className="message-sender">{msg.sender.displayName}</div>}
                                         <div className="message-text">{msg.text}</div>
+                                        {msg.attachments && msg.attachments.map((attachment, index) => (
+                                            <div key={index} className="message-attachment">
+                                                <img src={`http://localhost:5000${attachment}`} alt="Attachment" className="attachment-preview" />
+                                            </div>
+                                        ))}
                                     </li>
                                 );
                             })}
@@ -368,6 +391,13 @@ function App() {
                                 style={{ display: 'none' }}
                                 onChange={handleFileChange}
                             />
+                            {isUploading && <div className="upload-progress">Uploading... {uploadProgress}%</div>}
+                            {attachment && (
+                                <div className="file-preview">
+                                    <img src={`http://localhost:5000${attachment}`} alt="Attachment Preview" className="attachment-thumbnail" />
+                                    <button className="remove-attachment-button" onClick={removeAttachment}><FaTimes /></button>
+                                </div>
+                            )}
                         </div>
                     </div>
 

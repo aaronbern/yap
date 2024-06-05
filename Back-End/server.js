@@ -10,7 +10,6 @@ const multer = require('multer');
 const fs = require('fs');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 require('./config/passport');
-
 const Message = require('./models/message');
 
 const app = express();
@@ -32,6 +31,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Ensure uploads directory exists
 const uploadDir = path.resolve(__dirname, 'uploads');
@@ -79,8 +81,18 @@ app.use((req, res, next) => {
 app.use('/auth', require('./routes/auth'));
 app.use('/users', require('./routes/user_routes'));
 app.use('/chat', require('./routes/chat_routes'));
-app.post('/upload', ensureAuth, upload.single('file'), (req, res) => {
-    res.status(200).json({ filePath: req.file.path });
+
+// Handle file uploads
+app.post('/upload', (req, res) => {
+    upload.single('file')(req, res, (err) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error uploading file', error: err.message });
+        }
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+        res.status(200).json({ filePath: `/uploads/${req.file.filename}` });
+    });
 });
 
 // Dashboard route
@@ -113,34 +125,23 @@ io.on('connection', (socket) => {
         socket.join(chatRoomId);
         console.log(`User joined room: ${chatRoomId}`);
     });
-    
+
     socket.on('leaveRoom', ({ chatRoomId }) => {
         socket.leave(chatRoomId);
         console.log(`User left room: ${chatRoomId}`);
     });
-    
-    socket.on('chatMessage', async ({ chatRoomId, text, senderId, attachment }) => {
+
+    socket.on('chatMessage', async ({ chatRoomId, text, senderId, attachments }) => {
         try {
-            console.log('Message received on server:', { chatRoomId, text, senderId, attachment });
-            
+            console.log('Message received on server:', { chatRoomId, text, senderId, attachments });
+
             if (!chatRoomId || !senderId) {
                 console.error('chatRoomId or senderId is undefined');
                 return;
             }
 
-            if (!text && !attachment) {
-                console.error('Either text or attachment is required');
-                return;
-            }
-
-            // Prevent double entry by checking message uniqueness
-            const existingMessage = await Message.findOne({
-                chatRoom: chatRoomId,
-                sender: senderId,
-                text
-            });
-
-            if (existingMessage) {
+            if (!text && (!attachments || attachments.length === 0)) {
+                console.error('Either text or attachments is required');
                 return;
             }
 
@@ -148,7 +149,7 @@ io.on('connection', (socket) => {
                 chatRoom: new mongoose.Types.ObjectId(chatRoomId),
                 sender: new mongoose.Types.ObjectId(senderId),
                 text: text || '',
-                attachments: attachment ? [attachment] : []
+                attachments: attachments || []
             });
 
             console.log('message data before save:', message);

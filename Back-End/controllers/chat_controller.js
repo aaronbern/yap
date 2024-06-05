@@ -90,7 +90,7 @@ exports.addUserToChatRoom = async (req, res) => {
 // Send a message in a chat room
 exports.sendMessage = async (req, res) => {
     try {
-        const { chatRoomId, text, attachment } = req.body;
+        const { chatRoomId, text, attachments } = req.body;
         if (!chatRoomId) {
             return res.status(400).json({ message: 'Chat room ID is required' });
         }
@@ -99,13 +99,13 @@ exports.sendMessage = async (req, res) => {
             return res.status(401).json({ message: 'User not authenticated' });
         }
 
-        const senderId = new mongoose.Types.ObjectId(req.user._id);
+        const senderId = req.user._id;
 
         const messageData = {
             chatRoom: new mongoose.Types.ObjectId(chatRoomId),
-            sender: senderId,
-            text: text || '', // default to empty string if no text
-            attachment: attachment || '' // default to empty string if no attachment
+            sender: new mongoose.Types.ObjectId(senderId),
+            text: text || '', 
+            attachments: attachments || []
         };
 
         const message = new Message(messageData);
@@ -113,7 +113,6 @@ exports.sendMessage = async (req, res) => {
 
         const populatedMessage = await Message.findById(message._id).populate('sender', 'displayName').exec();
 
-        // Emit the message using Socket.IO
         req.io.to(chatRoomId).emit('message', populatedMessage);
 
         res.status(201).json(populatedMessage);
