@@ -31,6 +31,7 @@ function App() {
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
+    const [forceScroll, setForceScroll] = useState(false);
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
     const typingTimeoutRef = useRef(null);
@@ -51,7 +52,7 @@ function App() {
             console.log('New message received:', message); // Debug log
             if (message.chatRoom.toString() === selectedChatRoom) {
                 setMessages(prevMessages => [...prevMessages, message]);
-                scrollToBottom();
+                setForceScroll(true);
             }
         };
 
@@ -78,8 +79,11 @@ function App() {
     }, [selectedChatRoom, user]);
 
     useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+        if (forceScroll) {
+            scrollToBottom();
+            setForceScroll(false);
+        }
+    }, [messages, participants, forceScroll]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -102,14 +106,17 @@ function App() {
                 const orderedMessages = response.data.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
                 setMessages(orderedMessages);
                 fetchParticipants(chatRoomId);
-                scrollToBottom();
+                setForceScroll(true);
             })
             .catch(error => console.error('Error fetching messages:', error));
     };
 
     const fetchParticipants = (chatRoomId) => {
         axios.get(`/chat/rooms/${chatRoomId}/participants`)
-            .then(response => setParticipants(response.data))
+            .then(response => {
+                setParticipants(response.data);
+                setForceScroll(true);
+            })
             .catch(error => console.error('Error fetching participants:', error));
     };
 
@@ -167,6 +174,7 @@ function App() {
             axios.post(`/chat/rooms/${selectedChatRoom}/add`, { userId })
                 .then(response => {
                     setParticipants(response.data.participants);
+                    setForceScroll(true);
                 })
                 .catch(error => console.error('Error adding participant:', error));
         }
