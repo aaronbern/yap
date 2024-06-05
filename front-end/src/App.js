@@ -20,7 +20,7 @@ function App() {
     const [searchResults, setSearchResults] = useState([]);
     const [participants, setParticipants] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [contextMenu, setContextMenu] = useState({ show: false, xPos: 0, yPos: 0, options: [] });
+    const [contextMenu, setContextMenu] = useState({ show: false, xPos: 0, yPos: 0, roomId: null });
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [roomIdToDelete, setRoomIdToDelete] = useState(null);
     const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
@@ -82,7 +82,7 @@ function App() {
     }, [messages]);
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     };
 
     const fetchChatRooms = () => {
@@ -186,8 +186,7 @@ function App() {
             show: true,
             xPos: event.pageX,
             yPos: event.pageY,
-            roomId,
-            options: contextMenuOptions
+            roomId
         });
     };
 
@@ -280,45 +279,6 @@ function App() {
         setAttachment(null);
     };
 
-    const handleEnlargeImage = (imageSrc) => {
-        setSelectedImage(imageSrc);
-        setIsImageModalOpen(true);
-    };
-
-    const handleCloseImageModal = () => {
-        setIsImageModalOpen(false);
-        setSelectedImage(null);
-    };
-
-    const handleContextMenuForAttachment = (event, attachment) => {
-        event.preventDefault();
-        setContextMenu({
-            show: true,
-            xPos: event.pageX,
-            yPos: event.pageY,
-            options: [
-                {
-                    label: 'Download',
-                    onClick: () => {
-                        const link = document.createElement('a');
-                        link.href = `http://localhost:5000${attachment}`;
-                        link.download = attachment.split('/').pop();
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        setContextMenu({ ...contextMenu, show: false }); // Close context menu after download
-                    }
-                },
-                {
-                    label: 'Cancel',
-                    onClick: () => {
-                        setContextMenu({ ...contextMenu, show: false });
-                    }
-                }
-            ]
-        });
-    };
-
     const contextMenuOptions = [
         {
             label: 'Add User',
@@ -347,6 +307,41 @@ function App() {
             }
         }
     ];
+
+    // Context menu for attachment options
+    const handleAttachmentContextMenu = (event, attachment) => {
+        event.preventDefault();
+        setContextMenu({
+            show: true,
+            xPos: event.pageX,
+            yPos: event.pageY,
+            options: [
+                {
+                    label: 'Download',
+                    onClick: () => {
+                        const link = document.createElement('a');
+                        link.href = `http://localhost:5000${attachment}`;
+                        link.download = attachment.split('/').pop();
+                        link.click();
+                    }
+                },
+                {
+                    label: 'Cancel',
+                    onClick: () => setContextMenu({ ...contextMenu, show: false })
+                }
+            ]
+        });
+    };
+
+    const handleImageClick = (attachment) => {
+        setSelectedImage(`http://localhost:5000${attachment}`);
+        setIsImageModalOpen(true);
+    };
+
+    const closeImageModal = () => {
+        setIsImageModalOpen(false);
+        setSelectedImage(null);
+    };
 
     return (
         <div className="App">
@@ -395,14 +390,13 @@ function App() {
                                         {showSender && <div className="message-sender">{msg.sender.displayName}</div>}
                                         <div className="message-text">{msg.text}</div>
                                         {msg.attachments && msg.attachments.map((attachment, index) => (
-                                            <div key={index} className="message-attachment">
-                                                <img
-                                                    src={`http://localhost:5000${attachment}`}
-                                                    alt="Attachment"
-                                                    className="attachment-preview"
-                                                    onClick={() => handleEnlargeImage(`http://localhost:5000${attachment}`)}
-                                                    onContextMenu={(e) => handleContextMenuForAttachment(e, attachment)}
-                                                />
+                                            <div
+                                                key={index}
+                                                className="message-attachment"
+                                                onClick={() => handleImageClick(attachment)}
+                                                onContextMenu={(e) => handleAttachmentContextMenu(e, attachment)}
+                                            >
+                                                <img src={`http://localhost:5000${attachment}`} alt="Attachment" className="attachment-preview" />
                                             </div>
                                         ))}
                                     </li>
@@ -481,7 +475,7 @@ function App() {
                     )}
 
                     <ContextMenu
-                        options={contextMenu.options}
+                        options={contextMenu.options || contextMenuOptions}
                         xPos={contextMenu.xPos}
                         yPos={contextMenu.yPos}
                         show={contextMenu.show}
@@ -495,10 +489,9 @@ function App() {
                     />
 
                     {isImageModalOpen && (
-                        <div className="modal-overlay" onClick={handleCloseImageModal}>
-                            <div className="modal image-modal" onClick={(e) => e.stopPropagation()}>
-                                <img src={selectedImage} alt="Enlarged Attachment" className="enlarged-attachment" />
-                                <button className="close-button" onClick={handleCloseImageModal}>Close</button>
+                        <div className="modal-overlay" onClick={closeImageModal}>
+                            <div className="modal">
+                                <img src={selectedImage} alt="Full Size Attachment" className="full-size-image" />
                             </div>
                         </div>
                     )}
