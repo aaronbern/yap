@@ -6,7 +6,7 @@ import './App.css';
 import ContextMenu from './ContextMenu';
 import DeleteWarningModal from './DeleteWarningModal';
 import CreateChatRoomModal from './CreateChatRoomModal';
-import typingIndicatorGif from './typing-indicator.gif'; // Adjust the path as needed
+import typingIndicatorGif from './typing-indicator.gif'; 
 
 const socket = io('http://localhost:5000');
 
