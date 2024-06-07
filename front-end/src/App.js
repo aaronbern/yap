@@ -36,6 +36,7 @@ function App() {
     const [isPollModalOpen, setIsPollModalOpen] = useState(false); // State for PollModal
     const [polls, setPolls] = useState([]); // State for polls
     const [pollVotes, setPollVotes] = useState({}); // State to track votes
+    const [pollContextMenu, setPollContextMenu] = useState({ show: false, xPos: 0, yPos: 0, pollId: null });
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
     const typingTimeoutRef = useRef(null);
@@ -209,6 +210,16 @@ function App() {
         });
     };
 
+    const handlePollContextMenu = (event, pollId) => {
+        event.preventDefault();
+        setPollContextMenu({
+            show: true,
+            xPos: event.pageX,
+            yPos: event.pageY,
+            pollId
+        });
+    };
+
     const handleRenameChatRoom = (roomId, newName) => {
         axios.put(`/chat/rooms/${roomId}/rename`, { name: newName })
             .then(response => {
@@ -227,6 +238,15 @@ function App() {
                 }
             })
             .catch(error => console.error('Error deleting chat room:', error));
+    };
+
+    const handleDeletePoll = (pollId) => {
+        axios.delete(`/polls/${pollId}`)
+            .then(() => {
+                setPolls(polls.filter(poll => poll._id !== pollId));
+                setPollContextMenu({ show: false, xPos: 0, yPos: 0, pollId: null });
+            })
+            .catch(error => console.error('Error deleting poll:', error));
     };
 
     const openDeleteModal = (roomId) => {
@@ -322,6 +342,18 @@ function App() {
             onClick: () => {
                 if (contextMenu.roomId) {
                     openDeleteModal(contextMenu.roomId);
+                }
+            }
+        }
+    ];
+
+    // Context menu for poll options
+    const pollContextMenuOptions = [
+        {
+            label: 'Delete Poll',
+            onClick: () => {
+                if (pollContextMenu.pollId) {
+                    handleDeletePoll(pollContextMenu.pollId);
                 }
             }
         }
@@ -456,7 +488,7 @@ function App() {
                             })}
 
                             {polls.map(poll => (
-                                <li key={poll._id} className="poll-item">
+                                <li key={poll._id} className="poll-item" onContextMenu={(e) => handlePollContextMenu(e, poll._id)}>
                                     <h3>{poll.question}</h3>
                                     <ul>
                                         {poll.options.map((option, index) => (
@@ -552,6 +584,14 @@ function App() {
                         yPos={contextMenu.yPos}
                         show={contextMenu.show}
                         onClose={() => setContextMenu({ ...contextMenu, show: false })}
+                    />
+
+                    <ContextMenu
+                        options={pollContextMenuOptions}
+                        xPos={pollContextMenu.xPos}
+                        yPos={pollContextMenu.yPos}
+                        show={pollContextMenu.show}
+                        onClose={() => setPollContextMenu({ ...pollContextMenu, show: false })}
                     />
 
                     <DeleteWarningModal

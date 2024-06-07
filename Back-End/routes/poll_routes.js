@@ -50,4 +50,15 @@ router.post('/vote/:pollId', ensureAuth, async (req, res) => {
     }
 });
 
+// Delete a poll
+router.delete('/:pollId', ensureAuth, async (req, res) => {
+    try {
+        await Poll.findByIdAndDelete(req.params.pollId);
+        res.status(200).json({ message: 'Poll deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete poll' });
+    }
+});
+
+
 module.exports = router;
