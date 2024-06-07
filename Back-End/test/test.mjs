@@ -2,11 +2,29 @@ import request from 'supertest';
 import { expect } from 'chai';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-import app from '../server.js';
+const { default: mongoose } = require('mongoose');
+const { default: app } = require('../server.js'); // Adjust the path if your server.js is in a different directory
+
+let server;
+
+before((done) => {
+    const PORT = process.env.TEST_PORT || 5001;
+    server = app.listen(PORT, () => {
+        console.log(`Test server running on port ${PORT}`);
+        done();
+    });
+});
+
+after((done) => {
+    server.close(() => {
+        console.log('Test server closed');
+        mongoose.connection.close(done);
+    });
+});
 
 describe('GET /', () => {
   it('should return status 200 and a welcome message', (done) => {
-    request(app)
+    request(server)
       .get('/')
       .expect(200)
       .end((err, res) => {
@@ -22,10 +40,10 @@ describe('POST /polls', () => {
     const pollData = {
       question: 'What is your favorite color?',
       options: [{ text: 'Red' }, { text: 'Blue' }],
-      chatRoom: '60d21b4667d0d8992e610c85' // replace with an actual chatRoom ID
+      chatRoom: '665bd9663e417cb0c9a0b613' // replace with an actual chatRoom ID
     };
 
-    request(app)
+    request(server)
       .post('/polls')
       .send(pollData)
       .expect(201)
@@ -41,12 +59,12 @@ describe('POST /polls', () => {
 
 describe('POST /polls/vote/:pollId', () => {
   it('should vote on a poll option', (done) => {
-    const pollId = '60d21b4667d0d8992e610c85'; // replace with an actual poll ID
+    const pollId = '665bd9663e417cb0c9a0b615'; // replace with an actual poll ID
     const voteData = {
       optionIndex: 0
     };
 
-    request(app)
+    request(server)
       .post(`/polls/vote/${pollId}`)
       .send(voteData)
       .expect(200)
@@ -67,7 +85,7 @@ describe('Authentication Service', () => {
         password: 'password123'
       };
 
-      request(app)
+      request(server)
         .post('/auth/register')
         .send(userData)
         .expect(201)
@@ -87,7 +105,7 @@ describe('Authentication Service', () => {
         password: 'password123'
       };
 
-      request(app)
+      request(server)
         .post('/auth/login')
         .send(loginData)
         .expect(200)
@@ -101,7 +119,7 @@ describe('Authentication Service', () => {
 
   describe('POST /auth/logout', () => {
     it('should log out a user', (done) => {
-      request(app)
+      request(server)
         .post('/auth/logout')
         .expect(200)
         .end((err, res) => {
@@ -117,12 +135,12 @@ describe('Messaging Service', () => {
   describe('POST /chat/messages', () => {
     it('should send a message', (done) => {
       const messageData = {
-        chatRoomId: '60d21b4667d0d8992e610c85', // replace with an actual chatRoom ID
+        chatRoomId: '665bd9663e417cb0c9a0b613', // replace with an actual chatRoom ID
         text: 'Hello, this is a test message',
-        senderId: '60d21b4667d0d8992e610c86' // replace with an actual user ID
+        senderId: '665bd9663e417cb0c9a0b614' // replace with an actual user ID
       };
 
-      request(app)
+      request(server)
         .post('/chat/messages')
         .send(messageData)
         .expect(201)
@@ -137,9 +155,9 @@ describe('Messaging Service', () => {
 
   describe('GET /chat/rooms/:chatRoomId/messages', () => {
     it('should fetch messages for a chat room', (done) => {
-      const chatRoomId = '60d21b4667d0d8992e610c85'; // replace with an actual chatRoom ID
+      const chatRoomId = '665bd9663e417cb0c9a0b613'; // replace with an actual chatRoom ID
 
-      request(app)
+      request(server)
         .get(`/chat/rooms/${chatRoomId}/messages`)
         .expect(200)
         .end((err, res) => {
