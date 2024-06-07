@@ -1,0 +1,58 @@
+.poll-item {
+    background-color: #d0e0ff; /* Match the chat window background */
+    border: 1px solid #007bff; /* Use a blue border */
+    border-radius: 10px;
+    padding: 10px;
+    margin: 10px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.poll-item h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.poll-item ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.poll-option {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    margin: 5px 0;
+    border: 1px solid #007bff; /* Use a blue border */
+    border-radius: 5px;
+    background-color: #e9ecef;
+    color: #333;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.poll-option:hover {
+    background-color: #cfd8dc;
+}
+
+.poll-option.voted {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.poll-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.poll-button:hover {
+    background-color: #0056b3;
+}

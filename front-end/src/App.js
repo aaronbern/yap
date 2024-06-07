@@ -6,7 +6,8 @@ import './App.css';
 import ContextMenu from './ContextMenu';
 import DeleteWarningModal from './DeleteWarningModal';
 import CreateChatRoomModal from './CreateChatRoomModal';
-import typingIndicatorGif from './typing-indicator.gif'; 
+import PollModal from './PollModal'; // Import PollModal
+import typingIndicatorGif from './typing-indicator.gif';
 
 const socket = io('http://localhost:5000');
 
@@ -32,6 +33,9 @@ function App() {
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     const [forceScroll, setForceScroll] = useState(false);
+    const [isPollModalOpen, setIsPollModalOpen] = useState(false); // State for PollModal
+    const [polls, setPolls] = useState([]); // State for polls
+    const [pollVotes, setPollVotes] = useState({}); // State to track votes
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
     const typingTimeoutRef = useRef(null);
@@ -49,7 +53,7 @@ function App() {
 
     useEffect(() => {
         const handleNewMessage = (message) => {
-            console.log('New message received:', message); // Debug log
+            console.log('New message received:', message);
             if (message.chatRoom.toString() === selectedChatRoom) {
                 setMessages(prevMessages => [...prevMessages, message]);
                 setForceScroll(true);
@@ -106,6 +110,7 @@ function App() {
                 const orderedMessages = response.data.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
                 setMessages(orderedMessages);
                 fetchParticipants(chatRoomId);
+                fetchPolls(chatRoomId); // Fetch polls when messages are fetched
                 setForceScroll(true);
             })
             .catch(error => console.error('Error fetching messages:', error));
@@ -118,6 +123,12 @@ function App() {
                 setForceScroll(true);
             })
             .catch(error => console.error('Error fetching participants:', error));
+    };
+
+    const fetchPolls = (chatRoomId) => {
+        axios.get(`/polls/${chatRoomId}`)
+            .then(response => setPolls(response.data))
+            .catch(error => console.error('Error fetching polls:', error));
     };
 
     const handleSendMessage = () => {
@@ -138,13 +149,13 @@ function App() {
             attachments: attachment ? [attachment] : []
         };
 
-        console.log('Sending message:', message); // Debug log
+        console.log('Sending message:', message);
 
         axios.post('/chat/messages', message)
             .then(response => {
                 setNewMessage('');
-                setAttachment(null); // Reset attachment after sending
-                socket.emit('chatMessage', response.data); // Emit the message through Socket.IO
+                setAttachment(null);
+                socket.emit('chatMessage', response.data);
             })
             .catch(error => console.error('Error sending message:', error));
     };
@@ -351,6 +362,39 @@ function App() {
         setSelectedImage(null);
     };
 
+    const handleCreatePoll = (pollData) => {
+        const poll = {
+            ...pollData,
+            chatRoom: selectedChatRoom,
+        };
+
+        axios.post('/polls', poll)
+            .then(response => {
+                setPolls([...polls, response.data]);
+                setIsPollModalOpen(false);
+            })
+            .catch(error => console.error('Error creating poll:', error));
+    };
+
+    const handleVote = (pollId, optionIndex) => {
+        const currentVote = pollVotes[pollId];
+
+        axios.post(`/polls/vote/${pollId}`, { optionIndex, previousOptionIndex: currentVote })
+            .then(response => {
+                setPolls(polls.map(poll => poll._id === pollId ? response.data : poll));
+                setPollVotes({ ...pollVotes, [pollId]: optionIndex });
+            })
+            .catch(error => console.error('Error voting:', error));
+    };
+
+    const openPollModal = () => {
+        setIsPollModalOpen(true);
+    };
+
+    const closePollModal = () => {
+        setIsPollModalOpen(false);
+    };
+
     return (
         <div className="App">
             {!user ? (
@@ -410,6 +454,25 @@ function App() {
                                     </li>
                                 );
                             })}
+
+                            {polls.map(poll => (
+                                <li key={poll._id} className="poll-item">
+                                    <h3>{poll.question}</h3>
+                                    <ul>
+                                        {poll.options.map((option, index) => (
+                                            <li key={index}>
+                                                <button
+                                                    className={`poll-option ${pollVotes[poll._id] === index ? 'voted' : ''}`}
+                                                    onClick={() => handleVote(poll._id, index)}
+                                                >
+                                                    {option.text} ({option.votes})
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </li>
+                            ))}
+
                             <div ref={messagesEndRef} /> {/* Ref to handle scrolling */}
                         </ul>
                         <div className="typing-indicator">
@@ -435,6 +498,7 @@ function App() {
                                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                             />
                             <button onClick={handleSendMessage}>Send</button>
+                            <button onClick={openPollModal} className="poll-button">Create Poll</button> {/* Add Poll button */}
                             <input
                                 type="file"
                                 ref={fileInputRef}
@@ -503,6 +567,12 @@ function App() {
                             </div>
                         </div>
                     )}
+
+                    <PollModal
+                        isOpen={isPollModalOpen}
+                        onClose={closePollModal}
+                        onCreate={handleCreatePoll}
+                    />
                 </div>
             )}
         </div>

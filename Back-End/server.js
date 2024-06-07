@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const http = require('http');
 const mongoose = require('mongoose');
@@ -11,6 +12,7 @@ const fs = require('fs');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 require('./config/passport');
 const Message = require('./models/message');
+const Poll = require('./models/polls');
 
 const app = express();
 const server = http.createServer(app);
@@ -81,6 +83,7 @@ app.use((req, res, next) => {
 app.use('/auth', require('./routes/auth'));
 app.use('/users', require('./routes/user_routes'));
 app.use('/chat', require('./routes/chat_routes'));
+app.use('/polls', require('./routes/poll_routes'));  
 
 // Handle file uploads
 app.post('/upload', (req, res) => {
