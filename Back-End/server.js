@@ -188,5 +188,3 @@ function ensureAuth(req, res, next) {
     }
     res.redirect('/');
 }
-
-module.exports = { app, server };
