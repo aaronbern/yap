@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const { default: mongoose } = require('mongoose');
-const { default: app } = require('../server.js'); // Adjust the path if your server.js is in a different directory
+const { default: app } = require('../server.js'); 
 
 let server;
 
