@@ -1,4 +1,4 @@
-how is this: import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client';
 import { FaPlus, FaPaperclip, FaTimes } from 'react-icons/fa';
