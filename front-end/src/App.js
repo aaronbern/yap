@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+how is this: import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client';
 import { FaPlus, FaPaperclip, FaTimes } from 'react-icons/fa';
@@ -9,7 +9,9 @@ import CreateChatRoomModal from './CreateChatRoomModal';
 import PollModal from './PollModal'; // Import PollModal
 import typingIndicatorGif from './typing-indicator.gif';
 
-const socket = io('http://localhost:5000');
+// Determine the backend URL based on environment
+const backendUrl = process.env.REACT_APP_BACKEND_URL === 'production' ? '' : 'http://localhost:5000';
+const socket = io(backendUrl);
 
 function App() {
     const [user, setUser] = useState(null);
@@ -42,7 +44,7 @@ function App() {
     const typingTimeoutRef = useRef(null);
 
     useEffect(() => {
-        axios.get('/auth/user')
+        axios.get(`${backendUrl}/auth/user`)
             .then(response => {
                 setUser(response.data);
                 if (response.data) {
@@ -95,7 +97,7 @@ function App() {
     };
 
     const fetchChatRooms = () => {
-        axios.get('/chat/rooms')
+        axios.get(`${backendUrl}/chat/rooms`)
             .then(response => setChatRooms(response.data))
             .catch(error => console.error('Error fetching chat rooms:', error));
     };
@@ -106,7 +108,7 @@ function App() {
         }
         setSelectedChatRoom(chatRoomId);
         socket.emit('joinRoom', { chatRoomId });
-        axios.get(`/chat/rooms/${chatRoomId}/messages`)
+        axios.get(`${backendUrl}/chat/rooms/${chatRoomId}/messages`)
             .then(response => {
                 const orderedMessages = response.data.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
                 setMessages(orderedMessages);
@@ -118,7 +120,7 @@ function App() {
     };
 
     const fetchParticipants = (chatRoomId) => {
-        axios.get(`/chat/rooms/${chatRoomId}/participants`)
+        axios.get(`${backendUrl}/chat/rooms/${chatRoomId}/participants`)
             .then(response => {
                 setParticipants(response.data);
                 setForceScroll(true);
@@ -127,7 +129,7 @@ function App() {
     };
 
     const fetchPolls = (chatRoomId) => {
-        axios.get(`/polls/${chatRoomId}`)
+        axios.get(`${backendUrl}/polls/${chatRoomId}`)
             .then(response => setPolls(response.data))
             .catch(error => console.error('Error fetching polls:', error));
     };
@@ -152,7 +154,7 @@ function App() {
 
         console.log('Sending message:', message);
 
-        axios.post('/chat/messages', message)
+        axios.post(`${backendUrl}/chat/messages`, message)
             .then(response => {
                 setNewMessage('');
                 setAttachment(null);
@@ -167,7 +169,7 @@ function App() {
     };
 
     const handleCreateChatRoom = (name, participants) => {
-        axios.post('/chat/rooms', { name, participants })
+        axios.post(`${backendUrl}/chat/rooms`, { name, participants })
             .then(response => {
                 setChatRooms([...chatRooms, response.data]);
                 setIsModalOpen(false);
@@ -176,14 +178,14 @@ function App() {
     };
 
     const handleSearchUsers = () => {
-        axios.get(`/users/search?query=${searchQuery}`)
+        axios.get(`${backendUrl}/users/search?query=${searchQuery}`)
             .then(response => setSearchResults(response.data))
             .catch(error => console.error('Error searching users:', error));
     };
 
     const handleAddParticipant = (userId) => {
         if (!participants.some(participant => participant._id === userId)) {
-            axios.post(`/chat/rooms/${selectedChatRoom}/add`, { userId })
+            axios.post(`${backendUrl}/chat/rooms/${selectedChatRoom}/add`, { userId })
                 .then(response => {
                     setParticipants(response.data.participants);
                     setForceScroll(true);
@@ -221,7 +223,7 @@ function App() {
     };
 
     const handleRenameChatRoom = (roomId, newName) => {
-        axios.put(`/chat/rooms/${roomId}/rename`, { name: newName })
+        axios.put(`${backendUrl}/chat/rooms/${roomId}/rename`, { name: newName })
             .then(response => {
                 setChatRooms(chatRooms.map(room => room._id === roomId ? response.data : room));
             })
@@ -229,7 +231,7 @@ function App() {
     };
 
     const handleDeleteChatRoom = (roomId) => {
-        axios.delete(`/chat/rooms/${roomId}`)
+        axios.delete(`${backendUrl}/chat/rooms/${roomId}`)
             .then(() => {
                 setChatRooms(chatRooms.filter(room => room._id !== roomId));
                 if (selectedChatRoom === roomId) {
@@ -241,7 +243,7 @@ function App() {
     };
 
     const handleDeletePoll = (pollId) => {
-        axios.delete(`/polls/${pollId}`)
+        axios.delete(`${backendUrl}/polls/${pollId}`)
             .then(() => {
                 setPolls(polls.filter(poll => poll._id !== pollId));
                 setPollContextMenu({ show: false, xPos: 0, yPos: 0, pollId: null });
@@ -293,7 +295,7 @@ function App() {
             setIsUploading(true);
             setUploadProgress(0);
 
-            axios.post('/upload', formData, {
+            axios.post(`${backendUrl}/upload`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 },
@@ -371,7 +373,7 @@ function App() {
                     label: 'Download',
                     onClick: () => {
                         const link = document.createElement('a');
-                        link.href = `http://localhost:5000${attachment}`;
+                        link.href = `${backendUrl}${attachment}`;
                         link.download = attachment.split('/').pop();
                         link.click();
                     }
@@ -385,7 +387,7 @@ function App() {
     };
 
     const handleImageClick = (attachment) => {
-        setSelectedImage(`http://localhost:5000${attachment}`);
+        setSelectedImage(`${backendUrl}${attachment}`);
         setIsImageModalOpen(true);
     };
 
@@ -400,7 +402,7 @@ function App() {
             chatRoom: selectedChatRoom,
         };
 
-        axios.post('/polls', poll)
+        axios.post(`${backendUrl}/polls`, poll)
             .then(response => {
                 setPolls([...polls, response.data]);
                 setIsPollModalOpen(false);
@@ -411,7 +413,7 @@ function App() {
     const handleVote = (pollId, optionIndex) => {
         const currentVote = pollVotes[pollId];
 
-        axios.post(`/polls/vote/${pollId}`, { optionIndex, previousOptionIndex: currentVote })
+        axios.post(`${backendUrl}/polls/vote/${pollId}`, { optionIndex, previousOptionIndex: currentVote })
             .then(response => {
                 setPolls(polls.map(poll => poll._id === pollId ? response.data : poll));
                 setPollVotes({ ...pollVotes, [pollId]: optionIndex });
@@ -432,13 +434,13 @@ function App() {
             {!user ? (
                 <div className="login-container">
                     <h1>Welcome to Yap Chat</h1>
-                    <a href="http://localhost:5000/auth/google" className="login-button">Login with Google</a>
+                    <a href={`${backendUrl}/auth/google`} className="login-button">Login with Google</a>
                 </div>
             ) : (
                 <div className="chat-container">
                     <div className="sidebar">
                         <h2>Hello, {user.displayName}</h2>
-                        <button className="logout-button" onClick={() => axios.get('/auth/logout').then(() => setUser(null))}>Logout</button>
+                        <button className="logout-button" onClick={() => axios.get(`${backendUrl}/auth/logout`).then(() => setUser(null))}>Logout</button>
 
                         <h3>Chat Rooms</h3>
                         <ul className="chat-room-list">
@@ -480,7 +482,7 @@ function App() {
                                                 onClick={() => handleImageClick(attachment)}
                                                 onContextMenu={(e) => handleAttachmentContextMenu(e, attachment)}
                                             >
-                                                <img src={`http://localhost:5000${attachment}`} alt="Attachment" className="attachment-preview" />
+                                                <img src={`${backendUrl}${attachment}`} alt="Attachment" className="attachment-preview" />
                                             </div>
                                         ))}
                                     </li>
@@ -540,7 +542,7 @@ function App() {
                             {isUploading && <div className="upload-progress">Uploading... {uploadProgress}%</div>}
                             {attachment && (
                                 <div className="file-preview">
-                                    <img src={`http://localhost:5000${attachment}`} alt="Attachment Preview" className="attachment-thumbnail" />
+                                    <img src={`${backendUrl}${attachment}`} alt="Attachment Preview" className="attachment-thumbnail" />
                                     <button className="remove-attachment-button" onClick={removeAttachment}><FaTimes /></button>
                                 </div>
                             )}

@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const http = require('http');
 const mongoose = require('mongoose');
@@ -19,7 +18,7 @@ const server = http.createServer(app);
 const { Server } = require('socket.io');
 const io = new Server(server, {
     cors: {
-        origin: 'http://localhost:3000',
+        origin: process.env.FRONTEND_URL || 'http://localhost:3000',
         methods: ['GET', 'POST'],
         allowedHeaders: ['Content-Type'],
         credentials: true
@@ -28,7 +27,7 @@ const io = new Server(server, {
 
 // Middleware
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true
 }));
 app.use(express.json());
@@ -98,25 +97,15 @@ app.post('/upload', (req, res) => {
     });
 });
 
-// Dashboard route
-app.get('/dashboard', (req, res) => {
-    if (req.isAuthenticated()) {
-        res.redirect('http://localhost:3000');
-    } else {
-        res.redirect('/');
-    }
-});
-
-// Home route
-app.get('/', (req, res) => {
-    res.send('Yap Chat Application');
-});
-
 // Serve static assets if in production
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../frontend/build')));
     app.get('*', (req, res) => {
         res.sendFile(path.resolve(__dirname, '../frontend', 'build', 'index.html'));
+    });
+} else {
+    app.get('/', (req, res) => {
+        res.send('Yap Chat Application');
     });
 }
 
