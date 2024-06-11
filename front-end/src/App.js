@@ -10,7 +10,7 @@ import PollModal from './PollModal'; // Import PollModal
 import typingIndicatorGif from './typing-indicator.gif';
 
 // Determine the backend URL based on environment
-const backendUrl = process.env.REACT_APP_BACKEND_URL === 'production' ? '' : 'http://localhost:5000';
+const backendUrl = process.env.REACT_APP_BACKEND_URL;
 const socket = io(backendUrl);
 
 function App() {
