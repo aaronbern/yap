@@ -5,6 +5,8 @@
   "main": "Back-End/server.js",
   "scripts": {
     "start": "node Back-End/server.js",
+    "build": "cd frontend && npm install && npm run build",
+    "heroku-postbuild": "npm run build",
     "dev": "nodemon Back-End/server.js"
   },
   "dependencies": {
