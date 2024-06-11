@@ -17,26 +17,185 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: #172233;
+  background: linear-gradient(135deg, #6e8efb, #a777e3);
+  color: white;
+  position: relative;
+  overflow: hidden;
 }
 
 .login-container {
   text-align: center;
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  z-index: 1;
+  animation: fadeIn 1.5s ease;
+}
+
+.login-title {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  animation: fadeInDown 1s ease;
 }
 
 .login-button {
   display: inline-block;
   margin-top: 20px;
   padding: 10px 20px;
-  background-color: #4285F4;
+  background-color: #ff4b2b;
   color: white;
   text-decoration: none;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
+  border-radius: 50px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  animation: fadeInUp 1s ease;
 }
 
 .login-button:hover {
   background-color: #357ae8;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Background animations */
+.background-bubbles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.background-bubbles li {
+  position: absolute;
+  list-style: none;
+  display: block;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  animation: bubble 25s linear infinite;
+  bottom: -150px;
+  border-radius: 50%;
+}
+
+.background-bubbles li:nth-child(1) {
+  left: 25%;
+  width: 80px;
+  height: 80px;
+  animation-duration: 12s;
+  animation-delay: 0s;
+}
+
+.background-bubbles li:nth-child(2) {
+  left: 10%;
+  width: 20px;
+  height: 20px;
+  animation-duration: 18s;
+  animation-delay: 2s;
+}
+
+.background-bubbles li:nth-child(3) {
+  left: 70%;
+  width: 20px;
+  height: 20px;
+  animation-duration: 16s;
+  animation-delay: 4s;
+}
+
+.background-bubbles li:nth-child(4) {
+  left: 40%;
+  width: 60px;
+  height: 60px;
+  animation-duration: 22s;
+  animation-delay: 0s;
+}
+
+.background-bubbles li:nth-child(5) {
+  left: 65%;
+  width: 40px;
+  height: 40px;
+  animation-duration: 24s;
+  animation-delay: 0s;
+}
+
+.background-bubbles li:nth-child(6) {
+  left: 75%;
+  width: 110px;
+  height: 110px;
+  animation-duration: 22s;
+  animation-delay: 3s;
+}
+
+.background-bubbles li:nth-child(7) {
+  left: 35%;
+  width: 150px;
+  height: 150px;
+  animation-duration: 24s;
+  animation-delay: 7s;
+}
+
+.background-bubbles li:nth-child(8) {
+  left: 50%;
+  width: 25px;
+  height: 25px;
+  animation-duration: 12s;
+  animation-delay: 5s;
+}
+
+.background-bubbles li:nth-child(9) {
+  left: 20%;
+  width: 15px;
+  height: 15px;
+  animation-duration: 16s;
+  animation-delay: 6s;
+}
+
+.background-bubbles li:nth-child(10) {
+  left: 85%;
+  width: 150px;
+  height: 150px;
+  animation-duration: 18s;
+  animation-delay: 7s;
+}
+
+@keyframes bubble {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    transform: translateY(-1000px) scale(1.5);
+  }
 }
 
 .chat-container {
