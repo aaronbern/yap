@@ -431,7 +431,6 @@ function App() {
 
     return (
         <div className="App">
-            <div className="background-bubbles">
             {!user ? (
                 <div className="login-container">
                     <h1 className="login-title">Welcome to Yap Chat</h1>
@@ -618,7 +617,6 @@ function App() {
                     />
                 </div>
             )}
-            </div>
         </div>
     );
 }
