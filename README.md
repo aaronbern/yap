@@ -11,7 +11,7 @@ Ensure you have **Node.js** and **npm (Node Package Manager)** installed on your
 ### Installation
 
 1. **Clone the repository:**
-   - `git clone https://github.com/daniiltsioma/yap.git`
+   - `git clone https://github.com/aaronbern/yap.git`
 2. **Navigate to the project folder:**
    - `cd yap-chat-application`
 3. **Install dependencies:**
