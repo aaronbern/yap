@@ -1,3 +1,5 @@
+USE YAP - https://yapp-chat-app-de1a44a0cf7e.herokuapp.com/
+
 README for Yap Chat Application
 Project Overview
 The Yap Chat Application is a real-time messaging platform developed using the MERN stack (MongoDB, Express.js, React, Node.js). This application supports basic chat functionality, file attachments, polls within chat rooms, and various other interactive features. The project aimed to create a seamless communication experience for users with additional features to enhance usability and engagement.
