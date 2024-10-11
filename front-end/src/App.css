@@ -32,21 +32,21 @@ body {
 
 @keyframes slideIn {
   from {
-      transform: translateY(-50px);
-      opacity: 0;
+    transform: translateY(-50px);
+    opacity: 0;
   }
   to {
-      transform: translateY(0);
-      opacity: 1;
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
 @keyframes glow {
   0% {
-      box-shadow: 0 0 20px rgba(66, 133, 244, 0.5);
+    box-shadow: 0 0 20px rgba(66, 133, 244, 0.5);
   }
   100% {
-      box-shadow: 0 0 30px rgba(66, 133, 244, 1);
+    box-shadow: 0 0 30px rgba(66, 133, 244, 1);
   }
 }
 
@@ -72,47 +72,63 @@ body {
 
 @keyframes pulse {
   0% {
-      transform: scale(1);
+    transform: scale(1);
   }
   50% {
-      transform: scale(1.05);
+    transform: scale(1.05);
   }
   100% {
-      transform: scale(1);
+    transform: scale(1);
   }
 }
 
+/* Login button alignment weird */
 .login-button {
-  display: inline-block;
+  position: relative;
+  left: 125px;
+  width: 200px;
+  height: 45px;
   margin-top: 20px;
-  padding: 10px 20px;
+  font-size: 16px;
   background-color: #4285F4;
   color: white;
-  text-decoration: none;
+  border: none;
   border-radius: 5px;
-  transition: background-color 0.3s ease, transform 0.3s ease;
-  animation: bounce 2s infinite;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  align-content: center;
+  transition: background-color 0.3s ease;
 }
 
 .login-button:hover {
   background-color: #357ae8;
-  transform: translateY(-5px);
 }
 
-@keyframes bounce {
-  0%, 100% {
-      transform: translateY(0);
-  }
-  50% {
-      transform: translateY(-10px);
-  }
+.login-button .button-text {
+  position: relative;
+  left: 15px;
+  z-index: 2;
+  transition: opacity 0.5s ease;
+}
+
+.login-button .login-gif {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  width: 300px; /* Final width after animation */
+  height: 300px; /* Final height after animation */
+  object-fit: cover;
+  opacity: 0;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .chat-container {
   display: flex;
   width: 80%;
   height: 80%;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 0 25px 7px #4285F4;
@@ -134,7 +150,7 @@ body {
   }
 }
 
-
+/* Sidebar styles */
 .sidebar {
   width: 25%;
   background: #d0e0ff;
@@ -443,7 +459,6 @@ body {
   max-width: 100%;
   max-height: 100%;
 }
-
 
 /* Poll styles */
 .poll-item {

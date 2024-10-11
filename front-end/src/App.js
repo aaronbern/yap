@@ -8,9 +8,12 @@ import DeleteWarningModal from './DeleteWarningModal';
 import CreateChatRoomModal from './CreateChatRoomModal';
 import PollModal from './PollModal'; // Import PollModal
 import typingIndicatorGif from './typing-indicator.gif';
+import { gsap } from 'gsap';
+
 
 // Determine the backend URL based on environment
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const REACT_APP_BACKEND_URL = "http://localhost:5000";
+const backendUrl = REACT_APP_BACKEND_URL;
 const socket = io(backendUrl);
 
 function App() {
@@ -42,8 +45,13 @@ function App() {
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
     const typingTimeoutRef = useRef(null);
+    const buttonRef = useRef(null);
+    const gifRef = useRef(null);
+    
+
 
     useEffect(() => {
+        console.log("Backend URL:", REACT_APP_BACKEND_URL);
         axios.get(`${backendUrl}/auth/user`)
             .then(response => {
                 setUser(response.data);
@@ -282,6 +290,22 @@ function App() {
         }
     };
 
+    const handleLoginClick = () => {
+        const button = buttonRef.current;
+        const gif = gifRef.current;
+
+        // Create a timeline for the animation
+        gsap.timeline({
+            onComplete: () => {
+                window.location.href = `${backendUrl}/auth/google`;
+            },
+        })
+        .to(button, { duration: 1, width: 300, height: 300, borderRadius: '50%', ease: 'power2.out' })
+        .to(button, { duration: 0.5, backgroundColor: 'transparent', ease: 'power2.out' }, '-=0.5')
+        .to(button.querySelector('.button-text'), { duration: 0.5, opacity: 0, ease: 'power2.out' }, '-=0.5')
+        .fromTo(gif, { opacity: 0 }, { duration: 0.5, opacity: 1, ease: 'power2.out' }, '-=0.5');
+    };
+    
     const handleAttachmentClick = () => {
         fileInputRef.current.click();
     };
@@ -434,7 +458,19 @@ function App() {
             {!user ? (
                 <div className="login-container">
                     <h1 className="login-title">Welcome to Yap Chat</h1>
-                    <a href={`${backendUrl}/auth/google`} className="login-button">Login with Google</a>
+                    <button
+                        className="login-button"
+                        onClick={handleLoginClick}
+                        ref={buttonRef}
+                    >
+                        <span className="button-text">Login with Google</span>
+                        <img
+                            src={typingIndicatorGif}
+                            alt="Yap Animation"
+                            className="login-gif"
+                            ref={gifRef}
+                        />
+                    </button>
                 </div>
             ) : (
                 <div className="chat-container">
